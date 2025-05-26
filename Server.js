@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import jobRouter from './routes/jobRoutes.js';
+// import { useActionState } from 'react';
 
 // Load environment variables
 dotenv.config();
@@ -16,6 +17,12 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     next();
 });
+app.get('/',(req,res)=>{
+    res.send({
+        activeStatus:true,
+        error:false,
+    })
+})
 
 app.use('/api/jobs', jobRouter);
 

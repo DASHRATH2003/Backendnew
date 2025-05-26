@@ -65,6 +65,56 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
+// ✅ Add sample jobs endpoint
+app.post('/api/add-sample-jobs', async (req, res) => {
+  try {
+    const Job = (await import('./models/Job.js')).default;
+
+    const sampleJobs = [
+      {
+        title: "Software Developer",
+        category: "Technology",
+        location: "Bangalore",
+        experience: "2-4 years",
+        education: "B.Tech/B.E in Computer Science",
+        driveLocation: "Bangalore Tech Park",
+        description: "We are looking for a skilled software developer to join our team. Experience with React, Node.js, and MongoDB required."
+      },
+      {
+        title: "Data Analyst",
+        category: "Analytics",
+        location: "Mumbai",
+        experience: "1-3 years",
+        education: "B.Sc/M.Sc in Statistics or related field",
+        driveLocation: "Mumbai Business District",
+        description: "Seeking a data analyst to help us make data-driven decisions. Proficiency in SQL, Python, and data visualization tools required."
+      },
+      {
+        title: "HR Executive",
+        category: "Human Resources",
+        location: "Delhi",
+        experience: "3-5 years",
+        education: "MBA in HR or related field",
+        driveLocation: "Delhi Corporate Center",
+        description: "Looking for an experienced HR executive to manage recruitment, employee relations, and HR policies."
+      }
+    ];
+
+    const savedJobs = await Job.insertMany(sampleJobs);
+
+    res.status(201).json({
+      success: true,
+      message: `${savedJobs.length} sample jobs added successfully`,
+      data: savedJobs
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 // ✅ API Routes
 app.use('/api/jobs', jobRouter);
 

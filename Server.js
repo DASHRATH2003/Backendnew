@@ -40,6 +40,31 @@ app.get('/', (req, res) => {
   });
 });
 
+// ✅ Test MongoDB connection endpoint
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const dbState = mongoose.connection.readyState;
+    const states = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+
+    res.json({
+      success: true,
+      mongodbState: states[dbState],
+      mongodbURI: process.env.MONGODB_URI ? 'Set' : 'Not Set',
+      message: 'Database connection test'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 // ✅ API Routes
 app.use('/api/jobs', jobRouter);
 

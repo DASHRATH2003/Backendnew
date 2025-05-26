@@ -21,6 +21,7 @@ app.get('/',(req,res)=>{
     res.send({
         activeStatus:true,
         error:false,
+        massage:"server is running",
     })
 })
 

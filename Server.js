@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import jobRouter from './routes/jobRoutes.js';
 import path from "path";
+// import dbConnect from './db.js';
 const _dirname = path.resolve();
 
 dotenv.config();
@@ -102,9 +103,16 @@ app.post('/api/add-sample-jobs', async (req, res) => {
 app.use('/api/jobs', jobRouter);
 
 // ✅ MongoDB Connection
+
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  connectTimeoutMS: 30000, // 30 seconds connection timeout
+  socketTimeoutMS: 45000, // 45 seconds socket timeout
+  serverSelectionTimeoutMS: 30000, // 30 seconds server selection timeout
+  maxPoolSize: 10, // Maximum number of sockets in the connection pool
+  retryWrites: true,
+  w: 'majority'
 })
 .then(() => {
   console.log('✅ Connected to MongoDB');
@@ -112,6 +120,17 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch((err) => {
   console.error('❌ MongoDB connection error:', err);
 });
+
+// mongoose.connect(process.env.MONGODB_URI, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// })
+// .then(() => {
+//   console.log('✅ Connected to MongoDB');
+// })
+// .catch((err) => {
+//   console.error('❌ MongoDB connection error:', err);
+// });
 
 // ✅ Global Error Handler
 app.use((err, req, res, next) => {

@@ -1,28 +1,72 @@
 import Job from '../models/Job.js';
 
 // Create a new job
+// export const createJob = async (req, res) => {
+//     try {
+//         console.log('Received job creation request');
+//         console.log('Request body:', req.body);
+//         console.log('Request headers:', req.headers);
+
+//         const { title, category, location, experience, education, driveLocation, description } = req.body;
+
+//         console.log('Extracted fields:', {
+//             title, category, location, experience, education, driveLocation, description
+//         });
+
+//         // Validate required fields
+//         if (!title || !category || !location || !experience || !education || !driveLocation || !description) {
+//             console.log('Validation failed - missing fields');
+//             return res.status(400).json({
+//                 success: false,
+//                 message: 'Please provide all required fields: title, category, location, experience, education, driveLocation, and description'
+//             });
+//         }
+
+//         console.log('Creating new job...');
+//         const job = new Job({
+//             title,
+//             category,
+//             location,
+//             experience,
+//             education,
+//             driveLocation,
+//             description
+//         });
+
+//         console.log('Saving job to database...');
+//         const savedJob = await job.save();
+//         console.log('Job saved successfully:', savedJob);
+
+//         res.status(201).json({
+//             success: true,
+//             data: savedJob
+//         });
+//     } catch (error) {
+//         console.error('Error creating job:', error);
+//         res.status(400).json({
+//             success: false,
+//             message: error.message
+//         });
+//     }
+// };
 export const createJob = async (req, res) => {
     try {
-        console.log('Received job creation request');
-        console.log('Request body:', req.body);
-        console.log('Request headers:', req.headers);
-
+        console.log('Starting job creation process');
+        
         const { title, category, location, experience, education, driveLocation, description } = req.body;
 
-        console.log('Extracted fields:', {
-            title, category, location, experience, education, driveLocation, description
-        });
-
         // Validate required fields
-        if (!title || !category || !location || !experience || !education || !driveLocation || !description) {
-            console.log('Validation failed - missing fields');
+        const requiredFields = ['title', 'category', 'location', 'experience', 'education', 'driveLocation', 'description'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        
+        if (missingFields.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: 'Please provide all required fields: title, category, location, experience, education, driveLocation, and description'
+                message: `Missing required fields: ${missingFields.join(', ')}`
             });
         }
 
-        console.log('Creating new job...');
+        console.log('Creating new job document');
         const job = new Job({
             title,
             category,
@@ -33,19 +77,37 @@ export const createJob = async (req, res) => {
             description
         });
 
-        console.log('Saving job to database...');
-        const savedJob = await job.save();
-        console.log('Job saved successfully:', savedJob);
-
+        console.log('Attempting to save job to database');
+        const savedJob = await job.save({ maxTimeMS: 20000 }); // 20 second timeout for the save operation
+        
+        console.log('Job saved successfully');
         res.status(201).json({
             success: true,
             data: savedJob
         });
     } catch (error) {
-        console.error('Error creating job:', error);
-        res.status(400).json({
+        console.error('Error in createJob:', error);
+        
+        // Handle specific MongoDB timeout errors
+        if (error.message.includes('buffering timed out')) {
+            return res.status(504).json({
+                success: false,
+                message: 'Database operation timed out. Please try again.'
+            });
+        }
+        
+        // Handle validation errors
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+        
+        // Generic error response
+        res.status(500).json({
             success: false,
-            message: error.message
+            message: 'Internal server error'
         });
     }
 };

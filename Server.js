@@ -18,7 +18,9 @@ const allowedOrigins = [
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
-  'https://endearing-gnome-9639e4.netlify.app/'
+  'https://moonlit-gaufre-fa9bcd.netlify.app',
+  'https://moonlit-gaufre-fa9bcd.netlify.app/',
+  'https://gentle-starburst-7139d0.netlify.app'
 ];
 
 app.use(cors({

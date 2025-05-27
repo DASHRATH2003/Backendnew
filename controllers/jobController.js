@@ -3,16 +3,26 @@ import Job from '../models/Job.js';
 // Create a new job
 export const createJob = async (req, res) => {
     try {
+        console.log('Received job creation request');
+        console.log('Request body:', req.body);
+        console.log('Request headers:', req.headers);
+
         const { title, category, location, experience, education, driveLocation, description } = req.body;
+
+        console.log('Extracted fields:', {
+            title, category, location, experience, education, driveLocation, description
+        });
 
         // Validate required fields
         if (!title || !category || !location || !experience || !education || !driveLocation || !description) {
+            console.log('Validation failed - missing fields');
             return res.status(400).json({
                 success: false,
                 message: 'Please provide all required fields: title, category, location, experience, education, driveLocation, and description'
             });
         }
 
+        console.log('Creating new job...');
         const job = new Job({
             title,
             category,
@@ -23,12 +33,16 @@ export const createJob = async (req, res) => {
             description
         });
 
+        console.log('Saving job to database...');
         const savedJob = await job.save();
+        console.log('Job saved successfully:', savedJob);
+
         res.status(201).json({
             success: true,
             data: savedJob
         });
     } catch (error) {
+        console.error('Error creating job:', error);
         res.status(400).json({
             success: false,
             message: error.message

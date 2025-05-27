@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import jobRouter from './routes/jobRoutes.js';
+import path from "path";
+const _dirname = path.resolve();
 
 dotenv.config();
 
@@ -13,7 +15,10 @@ app.use(express.json());
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:3000',
-  'http://127.0.0.1:3000'
+  'http://localhost:3001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'https://gentle-starburst-7139d0.netlify.app'
 ];
 
 app.use(cors({
@@ -24,12 +29,18 @@ app.use(cors({
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log('CORS blocked origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+// app.use(express.static(path.join(__dirname,"/frontend/dist")));
+// app.get('*')
 
 // ✅ Default route
 app.get('/', (req, res) => {

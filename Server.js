@@ -21,7 +21,8 @@ const allowedOrigins = [
   'http://127.0.0.1:3001',
   'https://moonlit-gaufre-fa9bcd.netlify.app',
   'https://gentle-starburst-7139d0.netlify.app',
-  'https://endearing-gnome-9639e4.netlify.app' // ✅ Add this new URL here
+  'https://endearing-gnome-9639e4.netlify.app' ,// ✅ Add this new URL here
+  'https://championshrservices.com/'
 ];
 
 app.use(cors({

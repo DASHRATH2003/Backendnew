@@ -99,11 +99,7 @@ app.post('/api/add-sample-jobs', async (req, res) => {
   }
 });
 
-// ✅ API Routes
-app.use('/api/jobs', jobRouter);
-
-// ✅ MongoDB Connection
-
+// ✅ MongoDB Connection - Connect BEFORE setting up routes
 // Enhanced MongoDB connection configuration
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -116,8 +112,17 @@ mongoose.connect(process.env.MONGODB_URI, {
   retryReads: true,
   w: 'majority'
 })
-.then(() => console.log('✅ MongoDB connected successfully'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+.then(() => {
+  console.log('✅ MongoDB connected successfully');
+  console.log('📊 Database state:', mongoose.connection.readyState);
+})
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+  console.error('🔍 Connection string exists:', !!process.env.MONGODB_URI);
+});
+
+// ✅ API Routes - Set up AFTER MongoDB connection
+app.use('/api/jobs', jobRouter);
 
 // mongoose.connect(process.env.MONGODB_URI, {
 //   useNewUrlParser: true,

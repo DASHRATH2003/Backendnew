@@ -52,13 +52,13 @@ import Job from '../models/Job.js';
 // export const createJob = async (req, res) => {
 //     try {
 //         console.log('Starting job creation process');
-        
+
 //         const { title, category, location, experience, education, driveLocation, description } = req.body;
 
 //         // Validate required fields
 //         const requiredFields = ['title', 'category', 'location', 'experience', 'education', 'driveLocation', 'description'];
 //         const missingFields = requiredFields.filter(field => !req.body[field]);
-        
+
 //         if (missingFields.length > 0) {
 //             return res.status(400).json({
 //                 success: false,
@@ -79,7 +79,7 @@ import Job from '../models/Job.js';
 
 //         console.log('Attempting to save job to database');
 //         const savedJob = await job.save({ maxTimeMS: 20000 }); // 20 second timeout for the save operation
-        
+
 //         console.log('Job saved successfully');
 //         res.status(201).json({
 //             success: true,
@@ -87,7 +87,7 @@ import Job from '../models/Job.js';
 //         });
 //     } catch (error) {
 //         console.error('Error in createJob:', error);
-        
+
 //         // Handle specific MongoDB timeout errors
 //         if (error.message.includes('buffering timed out')) {
 //             return res.status(504).json({
@@ -95,7 +95,7 @@ import Job from '../models/Job.js';
 //                 message: 'Database operation timed out. Please try again.'
 //             });
 //         }
-        
+
 //         // Handle validation errors
 //         if (error.name === 'ValidationError') {
 //             return res.status(400).json({
@@ -103,7 +103,7 @@ import Job from '../models/Job.js';
 //                 message: error.message
 //             });
 //         }
-        
+
 //         // Generic error response
 //         res.status(500).json({
 //             success: false,
@@ -113,20 +113,38 @@ import Job from '../models/Job.js';
 // };
 export const createJob = async (req, res) => {
   try {
+    console.log('🚀 Starting job creation process');
+    console.log('📝 Request body:', req.body);
+
+    // Check database connection first
+    const mongoose = await import('mongoose');
+    const dbState = mongoose.default.connection.readyState;
+    console.log('📊 Database state:', dbState);
+
+    if (dbState !== 1) {
+      console.log('❌ Database not connected, state:', dbState);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection unavailable. Please try again later.'
+      });
+    }
+
     const { title, category, location, experience, education, driveLocation, description } = req.body;
 
     // Validate required fields
-    const requiredFields = ['title', 'category', 'location', 'experience', 
+    const requiredFields = ['title', 'category', 'location', 'experience',
                           'education', 'driveLocation', 'description'];
     const missingFields = requiredFields.filter(field => !req.body[field]);
 
     if (missingFields.length > 0) {
+      console.log('❌ Missing fields:', missingFields);
       return res.status(400).json({
         success: false,
         message: `Missing required fields: ${missingFields.join(', ')}`
       });
     }
 
+    console.log('✅ Creating new job document');
     // Create and save job with timeout
     const job = new Job({
       title,
@@ -138,7 +156,9 @@ export const createJob = async (req, res) => {
       description
     });
 
-    const savedJob = await job.save({ maxTimeMS: 20000 }); // 20 second timeout
+    console.log('💾 Saving job to database...');
+    const savedJob = await job.save({ maxTimeMS: 30000 }); // 30 second timeout
+    console.log('✅ Job saved successfully:', savedJob._id);
 
     return res.status(201).json({
       success: true,
@@ -146,12 +166,21 @@ export const createJob = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('❌ Database error:', error);
+    console.error('🔍 Error name:', error.name);
+    console.error('🔍 Error message:', error.message);
 
-    if (error.message.includes('timed out')) {
+    if (error.message.includes('timed out') || error.message.includes('timeout')) {
       return res.status(504).json({
         success: false,
         message: 'Database operation timed out. Please try again later.'
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: error.message
       });
     }
 

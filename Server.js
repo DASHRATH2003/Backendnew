@@ -104,22 +104,20 @@ app.use('/api/jobs', jobRouter);
 
 // ✅ MongoDB Connection
 
+// Enhanced MongoDB connection configuration
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   connectTimeoutMS: 30000, // 30 seconds connection timeout
   socketTimeoutMS: 45000, // 45 seconds socket timeout
   serverSelectionTimeoutMS: 30000, // 30 seconds server selection timeout
-  maxPoolSize: 10, // Maximum number of sockets in the connection pool
+  maxPoolSize: 10, // Connection pool size
   retryWrites: true,
+  retryReads: true,
   w: 'majority'
 })
-.then(() => {
-  console.log('✅ Connected to MongoDB');
-})
-.catch((err) => {
-  console.error('❌ MongoDB connection error:', err);
-});
+.then(() => console.log('✅ MongoDB connected successfully'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
 // mongoose.connect(process.env.MONGODB_URI, {
 //   useNewUrlParser: true,

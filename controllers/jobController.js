@@ -49,67 +49,117 @@ import Job from '../models/Job.js';
 //         });
 //     }
 // };
+// export const createJob = async (req, res) => {
+//     try {
+//         console.log('Starting job creation process');
+        
+//         const { title, category, location, experience, education, driveLocation, description } = req.body;
+
+//         // Validate required fields
+//         const requiredFields = ['title', 'category', 'location', 'experience', 'education', 'driveLocation', 'description'];
+//         const missingFields = requiredFields.filter(field => !req.body[field]);
+        
+//         if (missingFields.length > 0) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: `Missing required fields: ${missingFields.join(', ')}`
+//             });
+//         }
+
+//         console.log('Creating new job document');
+//         const job = new Job({
+//             title,
+//             category,
+//             location,
+//             experience,
+//             education,
+//             driveLocation,
+//             description
+//         });
+
+//         console.log('Attempting to save job to database');
+//         const savedJob = await job.save({ maxTimeMS: 20000 }); // 20 second timeout for the save operation
+        
+//         console.log('Job saved successfully');
+//         res.status(201).json({
+//             success: true,
+//             data: savedJob
+//         });
+//     } catch (error) {
+//         console.error('Error in createJob:', error);
+        
+//         // Handle specific MongoDB timeout errors
+//         if (error.message.includes('buffering timed out')) {
+//             return res.status(504).json({
+//                 success: false,
+//                 message: 'Database operation timed out. Please try again.'
+//             });
+//         }
+        
+//         // Handle validation errors
+//         if (error.name === 'ValidationError') {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: error.message
+//             });
+//         }
+        
+//         // Generic error response
+//         res.status(500).json({
+//             success: false,
+//             message: 'Internal server error'
+//         });
+//     }
+// };
 export const createJob = async (req, res) => {
-    try {
-        console.log('Starting job creation process');
-        
-        const { title, category, location, experience, education, driveLocation, description } = req.body;
+  try {
+    const { title, category, location, experience, education, driveLocation, description } = req.body;
 
-        // Validate required fields
-        const requiredFields = ['title', 'category', 'location', 'experience', 'education', 'driveLocation', 'description'];
-        const missingFields = requiredFields.filter(field => !req.body[field]);
-        
-        if (missingFields.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: `Missing required fields: ${missingFields.join(', ')}`
-            });
-        }
+    // Validate required fields
+    const requiredFields = ['title', 'category', 'location', 'experience', 
+                          'education', 'driveLocation', 'description'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
 
-        console.log('Creating new job document');
-        const job = new Job({
-            title,
-            category,
-            location,
-            experience,
-            education,
-            driveLocation,
-            description
-        });
-
-        console.log('Attempting to save job to database');
-        const savedJob = await job.save({ maxTimeMS: 20000 }); // 20 second timeout for the save operation
-        
-        console.log('Job saved successfully');
-        res.status(201).json({
-            success: true,
-            data: savedJob
-        });
-    } catch (error) {
-        console.error('Error in createJob:', error);
-        
-        // Handle specific MongoDB timeout errors
-        if (error.message.includes('buffering timed out')) {
-            return res.status(504).json({
-                success: false,
-                message: 'Database operation timed out. Please try again.'
-            });
-        }
-        
-        // Handle validation errors
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        // Generic error response
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      });
     }
+
+    // Create and save job with timeout
+    const job = new Job({
+      title,
+      category,
+      location,
+      experience,
+      education,
+      driveLocation,
+      description
+    });
+
+    const savedJob = await job.save({ maxTimeMS: 20000 }); // 20 second timeout
+
+    return res.status(201).json({
+      success: true,
+      data: savedJob
+    });
+
+  } catch (error) {
+    console.error('Database error:', error);
+
+    if (error.message.includes('timed out')) {
+      return res.status(504).json({
+        success: false,
+        message: 'Database operation timed out. Please try again later.'
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
 };
 
 // Get all jobs
